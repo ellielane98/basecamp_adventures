@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Basecamp Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#2F4A3D;
+    --forest-dark:#1E3128;
+    --rust:#B5542C;
+    --tan:#D8C7A1;
+    --cream:#F4EFE4;
+    --charcoal:#26241F;
+    --gold:#C89B3C;
+    --radius:10px;
+    --shadow: 0 6px 18px rgba(30,49,40,0.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--charcoal);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.slab{ font-family:'Roboto Slab',serif; }
+  .mono{ font-family:'Space Mono',monospace; letter-spacing:0.02em; }
+
+  header.top{
+    position:sticky; top:0; z-index:50;
+    background:var(--forest-dark);
+    color:var(--cream);
+    padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    border-bottom:3px solid var(--gold);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  header.top svg{ width:30px; height:30px; flex-shrink:0; }
+  header.top .name{ font-weight:800; font-size:1.05rem; letter-spacing:0.03em; text-transform:uppercase; }
+  .tabs{
+    display:flex; background:rgba(244,239,228,0.1); border-radius:999px; padding:4px;
+    border:1px solid rgba(244,239,228,0.25);
+  }
+  .tabs button{
+    border:none; background:transparent; color:var(--cream); padding:8px 16px;
+    border-radius:999px; font-family:'Inter',sans-serif; font-weight:600; font-size:0.85rem;
+    cursor:pointer; transition:background .2s ease, color .2s ease;
+  }
+  .tabs button.active{ background:var(--rust); color:white; }
+  .tabs button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .hero{
+    position:relative;
+    padding:64px 20px 48px;
+    text-align:center;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.05), transparent 40%),
+      linear-gradient(180deg, var(--forest) 0%, var(--forest-dark) 100%);
+    color:var(--cream);
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-radial-gradient(circle at 50% 120%, transparent 0, transparent 60px, rgba(216,199,161,0.06) 61px, rgba(216,199,161,0.06) 62px);
+    pointer-events:none;
+  }
+  .hero .eyebrow{
+    font-family:'Space Mono',monospace; text-transform:uppercase; letter-spacing:0.2em;
+    color:var(--gold); font-size:0.75rem; margin-bottom:14px;
+  }
+  .hero h1{ font-size:clamp(2.1rem, 5vw, 3.6rem); margin:0 0 14px; line-height:1.05; }
+  .hero p.sub{ max-width:560px; margin:0 auto; color:var(--tan); font-size:1.05rem; line-height:1.55; }
+  .route-sign{
+    position:relative; display:inline-flex; align-items:center; gap:0; margin-top:38px;
+    background:var(--forest-dark); border:2px solid var(--gold); border-radius:6px;
+    padding:10px 18px; flex-wrap:wrap; justify-content:center;
+  }
+  .route-sign .leg{
+    font-family:'Space Mono',monospace; font-weight:700; font-size:0.95rem; color:var(--cream);
+    padding:0 12px; white-space:nowrap;
+  }
+  .route-sign .leg.tentative{ color:var(--tan); opacity:0.6; font-style:italic; }
+  .route-sign .arrow{ color:var(--gold); font-size:0.95rem; }
+  .season-tag{
+    margin-top:16px; font-family:'Space Mono',monospace; font-size:0.75rem; letter-spacing:0.15em;
+    text-transform:uppercase; color:var(--tan); opacity:0.8;
+  }
+
+  main{ max-width:900px; margin:0 auto; padding:56px 20px 100px; }
+
+  .trail-wrap{ position:relative; }
+  .trail-line{
+    position:absolute; left:50%; top:0; bottom:0; width:4px; transform:translateX(-50%);
+    background-image: repeating-linear-gradient(to bottom, var(--rust) 0 10px, transparent 10px 20px);
+    z-index:0;
+  }
+  .stop{
+    position:relative; display:grid; grid-template-columns:1fr 60px 1fr; align-items:start;
+    margin-bottom:44px; opacity:0; transform:translateY(24px); transition:opacity .5s ease, transform .5s ease;
+  }
+  .stop.in{ opacity:1; transform:translateY(0); }
+  .stop .marker{
+    grid-column:2; justify-self:center; width:46px; height:46px; border-radius:50%;
+    background:var(--forest); border:3px solid var(--gold); color:var(--cream);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-family:'Space Mono',monospace; font-size:0.9rem;
+    box-shadow:var(--shadow); z-index:1;
+  }
+  .stop.tentative .marker{ background:var(--tan); border-color:var(--rust); color:var(--forest-dark); }
+  .card{
+    background:white; border-radius:var(--radius); padding:18px 22px; box-shadow:var(--shadow);
+    border-left:5px solid var(--rust);
+  }
+  .stop.tentative .card{ border-left-style:dashed; }
+  .stop:nth-child(odd) .card{ grid-column:1; }
+  .stop:nth-child(even) .card{ grid-column:3; }
+  .card .date{ color:var(--rust); font-size:0.78rem; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .badge{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:0.65rem; text-transform:uppercase;
+    letter-spacing:0.06em; background:var(--tan); color:var(--forest-dark); padding:2px 8px; border-radius:999px;
+  }
+  .card h3{ margin:0 0 4px; font-size:1.2rem; color:var(--forest-dark); }
+  .card p.note{ margin:0; line-height:1.5; font-size:0.92rem; opacity:0.85; }
+
+  @media (max-width: 720px){
+    .trail-line{ left:22px; }
+    .stop{ grid-template-columns:44px 1fr; margin-bottom:34px; }
+    .stop .marker{ grid-column:1; width:38px; height:38px; font-size:0.75rem; }
+    .stop:nth-child(odd) .card, .stop:nth-child(even) .card{ grid-column:2; }
+  }
+
+  footer{ text-align:center; padding:32px 20px 48px; color:var(--forest); opacity:0.7; font-size:0.85rem; }
+
+  /* ---------- Photos view ---------- */
+  .view{ display:none; }
+  .view.active{ display:block; }
+  .photo-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px;
+  }
+  .photo-grid img{
+    width:100%; height:220px; object-fit:cover; border-radius:8px; box-shadow:var(--shadow);
+    display:block; background:var(--tan);
+  }
+  .photo-status{
+    text-align:center; padding:40px 20px; color:var(--forest); opacity:0.75; font-size:0.95rem; line-height:1.6;
+  }
+  .photo-status code{
+    background:var(--tan); padding:2px 6px; border-radius:4px; font-family:'Space Mono',monospace; font-size:0.85em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .stop{ transition:none; opacity:1; transform:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M3 17h18M5 17V9.5C5 8.1 6.1 7 7.5 7h9C17.9 7 19 8.1 19 9.5V17" stroke="#F4EFE4" stroke-width="1.6" stroke-linecap="round"/><circle cx="7.5" cy="19" r="1.6" fill="#C89B3C"/><circle cx="16.5" cy="19" r="1.6" fill="#C89B3C"/><path d="M8 7V5.5C8 4.7 8.7 4 9.5 4h5c.8 0 1.5.7 1.5 1.5V7" stroke="#F4EFE4" stroke-width="1.6"/></svg>
+    <span class="name">The Basecamp Log</span>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Choose page">
+    <button id="btn-timeline" class="active" role="tab" aria-selected="true">Timeline</button>
+    <button id="btn-photos" role="tab" aria-selected="false">Photos</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Airstream Basecamp &middot; Levi &amp; Me</div>
+  <h1>Wherever We Park It,<br>That's Home</h1>
+  <p class="sub">A running log of where the Basecamp has taken us this season — from Windsor to the Gulf Coast and everywhere in between.</p>
+  <div class="route-sign" id="route-sign"></div>
+  <div class="season-tag">Sept &ndash; Jan &middot; Windsor, CO to the Gulf Coast</div>
+</section>
+
+<main>
+  <div class="view active" id="view-timeline">
+    <div class="trail-wrap" id="trail-wrap">
+      <div class="trail-line" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-photos">
+    <div id="photo-status" class="photo-status">Loading photos&hellip;</div>
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+</main>
+
+<footer>Made with leveling blocks and a loose plan. &copy; <span id="year"></span></footer>
+
+<script>
+/* ============================================================
+   EDIT ME: this is the full trip list. Each stop needs:
+   date     -> display text
+   name     -> title of the stop
+   note     -> optional short line/detail
+   tentative-> true for "possible" plans, false/omit for confirmed
+   ============================================================ */
+const TRIPS = [
+  { date:"Sept 27 – Oct 6", name:"Windsor, CO", note:"" },
+  { date:"Oct 7", name:"Land in Aruba", note:"2:10pm arrival" },
+  { date:"Oct 11", name:"Fly back to Windsor, CO", note:"" },
+  { date:"Oct 13", name:"Hit the road for Malibu", note:"" },
+  { date:"Oct 16", name:"Make it to Malibu", note:"" },
+  { date:"Oct 23 – Oct 25", name:"California National Park Trip", note:"" },
+  { date:"Nov 13", name:"Checkout of Malibu", note:"" },
+  { date:"Nov 13 – Nov 15", name:"Trip to NYC for UFC", note:"", tentative:true },
+  { date:"Nov 16", name:"Hit the road for Arizona", note:"" },
+  { date:"Nov 17", name:"Stop for Joshua Tree", note:"", tentative:true },
+  { date:"Nov 20", name:"Make it to Ahwatukee, AZ", note:"" },
+  { date:"Thanksgiving", name:"Arizona National Park Trip / Turkey Trot", note:"", tentative:true },
+  { date:"Dec 1 – Dec 8", name:"Airbnb in Arizona", note:"With Jacob & Marianna" },
+  { date:"Dec 8", name:"Hit the road for Texas", note:"" },
+  { date:"Dec 9 – Dec 12", name:"Rockwall, TX", note:"" },
+  { date:"Dec 12", name:"Hit the road for Florida", note:"" },
+  { date:"Dec 15 – Jan 5", name:"Florida", note:"" }
+];
+
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* Build the route sign from each stop's short location/place name.
+   Add a `place` field to a trip (short town/state or region) to control
+   what shows here; stops without one are skipped so the sign stays short. */
+const ROUTE = ["Windsor, CO","Malibu, CA","Ahwatukee, AZ","Rockwall, TX","Florida"];
+const routeSign = document.getElementById('route-sign');
+ROUTE.forEach((leg,i)=>{
+  if(i>0){
+    const arrow = document.createElement('span');
+    arrow.className='arrow'; arrow.textContent='→';
+    routeSign.appendChild(arrow);
+  }
+  const span = document.createElement('span');
+  span.className='leg';
+  span.textContent = leg;
+  routeSign.appendChild(span);
+});
+
+const trailWrap = document.getElementById('trail-wrap');
+TRIPS.forEach((t,i)=>{
+  const stop = document.createElement('div');
+  stop.className = 'stop' + (t.tentative ? ' tentative' : '');
+  stop.innerHTML = `
+    <div class="marker">${String(i+1).padStart(2,'0')}</div>
+    <div class="card">
+      <div class="date mono">${t.date} ${t.tentative ? '<span class="badge">Maybe</span>' : ''}</div>
+      <h3>${t.name}</h3>
+      ${t.note ? `<p class="note">${t.note}</p>` : ''}
+    </div>`;
+  trailWrap.appendChild(stop);
+});
+
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+},{ threshold:0.2 });
+document.querySelectorAll('.stop').forEach(s=>io.observe(s));
+
+/* ---------- Tabs ---------- */
+const btnTimeline = document.getElementById('btn-timeline');
+const btnPhotos = document.getElementById('btn-photos');
+const viewTimeline = document.getElementById('view-timeline');
+const viewPhotos = document.getElementById('view-photos');
+let photosLoaded = false;
+
+function showTimeline(){
+  viewTimeline.classList.add('active'); viewPhotos.classList.remove('active');
+  btnTimeline.classList.add('active'); btnPhotos.classList.remove('active');
+  btnTimeline.setAttribute('aria-selected','true'); btnPhotos.setAttribute('aria-selected','false');
+}
+function showPhotos(){
+  viewPhotos.classList.add('active'); viewTimeline.classList.remove('active');
+  btnPhotos.classList.add('active'); btnTimeline.classList.remove('active');
+  btnPhotos.setAttribute('aria-selected','true'); btnTimeline.setAttribute('aria-selected','false');
+  if(!photosLoaded){ photosLoaded = true; loadPhotos(); }
+}
+btnTimeline.addEventListener('click', showTimeline);
+btnPhotos.addEventListener('click', showPhotos);
+
+/* ============================================================
+   EDIT ME: Google Drive photo gallery config.
+   1. Paste your API key and folder ID below.
+   2. Make sure the folder is shared as "Anyone with the link - Viewer".
+   ============================================================ */
+const DRIVE_API_KEY = "PASTE_YOUR_API_KEY_HERE";
+const DRIVE_FOLDER_ID = "PASTE_YOUR_FOLDER_ID_HERE";
+
+async function loadPhotos(){
+  const statusEl = document.getElementById('photo-status');
+  const grid = document.getElementById('photo-grid');
+
+  if(DRIVE_API_KEY.startsWith('PASTE_') || DRIVE_FOLDER_ID.startsWith('PASTE_')){
+    statusEl.innerHTML = `Photos aren't connected yet. Add your Google Drive <code>DRIVE_API_KEY</code> and <code>DRIVE_FOLDER_ID</code> near the top of the script to turn this tab on.`;
+    return;
+  }
+
+  try{
+    const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&fields=files(id,name,thumbnailLink)&pageSize=200&key=${DRIVE_API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Drive request failed: ' + res.status);
+    const data = await res.json();
+    const files = data.files || [];
+
+    if(files.length === 0){
+      statusEl.textContent = "No photos in the folder yet — add some to your Google Drive folder and refresh this page.";
+      return;
+    }
+
+    statusEl.style.display = 'none';
+    files.forEach(f=>{
+      const img = document.createElement('img');
+      // request a larger thumbnail than Drive's default
+      img.src = f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+$/, '=s800') : '';
+      img.alt = f.name || 'Basecamp trip photo';
+      img.loading = 'lazy';
+      grid.appendChild(img);
+    });
+  }catch(err){
+    statusEl.textContent = "Couldn't load photos right now. Double-check the API key, folder ID, and that the folder is shared as 'Anyone with the link'.";
+    console.error(err);
+  }
+}
+</script>
+</body>
+</html>
