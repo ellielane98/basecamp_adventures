@@ -139,13 +139,29 @@
   /* ---------- Photos view ---------- */
   .view{ display:none; }
   .view.active{ display:block; }
+  .photo-section{ margin-bottom:48px; }
+  .photo-section:last-child{ margin-bottom:0; }
+  .photo-section-title{
+    font-size:1.3rem; color:var(--forest-dark); margin:0 0 16px;
+    padding-bottom:8px; border-bottom:2px solid var(--gold);
+  }
   .photo-grid{
     display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px;
   }
+  .photo-grid figure{ margin:0; }
   .photo-grid img{
     width:100%; height:220px; object-fit:cover; border-radius:8px; box-shadow:var(--shadow);
     display:block; background:var(--tan);
   }
+  .photo-grid figcaption{
+    margin-top:6px; font-size:0.82rem; color:var(--forest); opacity:0.85; line-height:1.4;
+  }
+  .view-photos{
+    display:inline-block; margin-top:10px; border:none; background:none; padding:0;
+    color:var(--rust); font-family:'Inter',sans-serif; font-weight:600; font-size:0.82rem;
+    cursor:pointer; text-decoration:underline; text-underline-offset:3px;
+  }
+  .view-photos:hover{ color:var(--forest-dark); }
   .photo-status{
     text-align:center; padding:40px 20px; color:var(--forest); opacity:0.75; font-size:0.95rem; line-height:1.6;
   }
@@ -175,9 +191,9 @@
 <section class="hero">
   <div class="eyebrow">Airstream Basecamp &middot; Levi &amp; Me</div>
   <h1>Wherever We Park It,<br>That's Home</h1>
-  <p class="sub">A running log of where the Basecamp has taken us this season — from Windsor to the Gulf Coast and everywhere in between.</p>
+  <p class="sub">A running log of where the Basecamp is taking us this season — from Windsor to Jensen Beach, FL and everywhere in between.</p>
   <div class="route-sign" id="route-sign"></div>
-  <div class="season-tag">Sept &ndash; Jan &middot; Windsor, CO to the Gulf Coast</div>
+  <div class="season-tag">Sept &ndash; Jan &middot; Windsor, CO to Jensen Beach, FL</div>
 </section>
 
 <main>
@@ -189,7 +205,7 @@
 
   <div class="view" id="view-photos">
     <div id="photo-status" class="photo-status">Loading photos&hellip;</div>
-    <div class="photo-grid" id="photo-grid"></div>
+    <div id="photo-sections"></div>
   </div>
 </main>
 
@@ -202,25 +218,28 @@
    name     -> title of the stop
    note     -> optional short line/detail
    tentative-> true for "possible" plans, false/omit for confirmed
+   place    -> optional. Set this to the exact name of a subfolder in your
+               Google Drive photos folder to add a "View photos" link on
+               this card that jumps to that folder's photo section.
    ============================================================ */
 const TRIPS = [
-  { date:"Sept 27 – Oct 6", name:"Windsor, CO", note:"" },
+  { date:"Sept 27 – Oct 6", name:"Windsor, CO", note:"", place:"Windsor, CO" },
   { date:"Oct 7", name:"Land in Aruba", note:"2:10pm arrival" },
   { date:"Oct 11", name:"Fly back to Windsor, CO", note:"" },
   { date:"Oct 13", name:"Hit the road for Malibu", note:"" },
-  { date:"Oct 16", name:"Make it to Malibu", note:"" },
+  { date:"Oct 16", name:"Make it to Malibu", note:"", place:"Malibu, CA" },
   { date:"Oct 23 – Oct 25", name:"California National Park Trip", note:"" },
   { date:"Nov 13", name:"Checkout of Malibu", note:"" },
   { date:"Nov 13 – Nov 15", name:"Trip to NYC for UFC", note:"", tentative:true },
   { date:"Nov 16", name:"Hit the road for Arizona", note:"" },
   { date:"Nov 17", name:"Stop for Joshua Tree", note:"", tentative:true },
-  { date:"Nov 20", name:"Make it to Ahwatukee, AZ", note:"" },
+  { date:"Nov 20", name:"Make it to Ahwatukee, AZ", note:"", place:"Ahwatukee, AZ" },
   { date:"Thanksgiving", name:"Arizona National Park Trip / Turkey Trot", note:"", tentative:true },
   { date:"Dec 1 – Dec 8", name:"Airbnb in Arizona", note:"With Jacob & Marianna" },
   { date:"Dec 8", name:"Hit the road for Texas", note:"" },
-  { date:"Dec 9 – Dec 12", name:"Rockwall, TX", note:"" },
+  { date:"Dec 9 – Dec 12", name:"Rockwall, TX", note:"", place:"Rockwall, TX" },
   { date:"Dec 12", name:"Hit the road for Florida", note:"" },
-  { date:"Dec 15 – Jan 5", name:"Florida", note:"" }
+  { date:"Dec 15 – Jan 5", name:"Jensen Beach, FL", note:"", place:"Jensen Beach, FL" }
 ];
 
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -228,7 +247,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
 /* Build the route sign from each stop's short location/place name.
    Add a `place` field to a trip (short town/state or region) to control
    what shows here; stops without one are skipped so the sign stays short. */
-const ROUTE = ["Windsor, CO","Malibu, CA","Ahwatukee, AZ","Rockwall, TX","Florida"];
+const ROUTE = ["Windsor, CO","Malibu, CA","Ahwatukee, AZ","Rockwall, TX","Jensen Beach, FL"];
 const routeSign = document.getElementById('route-sign');
 ROUTE.forEach((leg,i)=>{
   if(i>0){
@@ -248,7 +267,7 @@ TRIPS.forEach((t,i)=>{
   stop.className = 'stop' + (t.tentative ? ' tentative' : '');
   stop.innerHTML = `
     <div class="marker">${String(i+1).padStart(2,'0')}</div>
-    <div class="card">
+    <div class="card" ${t.place ? `data-place="${t.place}"` : ''}>
       <div class="date mono">${t.date} ${t.tentative ? '<span class="badge">Maybe</span>' : ''}</div>
       <h3>${t.name}</h3>
       ${t.note ? `<p class="note">${t.note}</p>` : ''}
@@ -266,7 +285,11 @@ const btnTimeline = document.getElementById('btn-timeline');
 const btnPhotos = document.getElementById('btn-photos');
 const viewTimeline = document.getElementById('view-timeline');
 const viewPhotos = document.getElementById('view-photos');
-let photosLoaded = false;
+let photosLoadPromise = null;
+function ensurePhotosLoaded(){
+  if(!photosLoadPromise) photosLoadPromise = loadPhotos();
+  return photosLoadPromise;
+}
 
 function showTimeline(){
   viewTimeline.classList.add('active'); viewPhotos.classList.remove('active');
@@ -277,22 +300,105 @@ function showPhotos(){
   viewPhotos.classList.add('active'); viewTimeline.classList.remove('active');
   btnPhotos.classList.add('active'); btnTimeline.classList.remove('active');
   btnPhotos.setAttribute('aria-selected','true'); btnTimeline.setAttribute('aria-selected','false');
-  if(!photosLoaded){ photosLoaded = true; loadPhotos(); }
+  ensurePhotosLoaded();
 }
 btnTimeline.addEventListener('click', showTimeline);
 btnPhotos.addEventListener('click', showPhotos);
+
+async function goToPhotos(place){
+  showPhotos();
+  await ensurePhotosLoaded();
+  const target = document.getElementById('photos-' + slugify(place));
+  if(target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Adds a "View photos" link to each timeline card whose place actually
+// has photos in Drive. Runs once photo data has loaded.
+function attachViewPhotosLinks(placesWithPhotos){
+  document.querySelectorAll('.card[data-place]').forEach(card=>{
+    const place = card.dataset.place;
+    if(!placesWithPhotos.has(place)) return;
+    const btn = document.createElement('button');
+    btn.className = 'view-photos';
+    btn.innerHTML = 'View photos &rarr;';
+    btn.addEventListener('click', ()=> goToPhotos(place));
+    card.appendChild(btn);
+  });
+}
+
+// Kick off the photo fetch as soon as the page loads (not just when the
+// Photos tab is opened) so we know which timeline cards should get a
+// "View photos" link.
+ensurePhotosLoaded();
 
 /* ============================================================
    EDIT ME: Google Drive photo gallery config.
    1. Paste your API key and folder ID below.
    2. Make sure the folder is shared as "Anyone with the link - Viewer".
+
+   Photos are grouped into sections by SUBFOLDER. Create a subfolder per
+   location (e.g. "Malibu, CA") inside your main Drive folder, matching the
+   `place` values in TRIPS above, and drop photos into those. Any images
+   left directly in the main folder (not in a subfolder) show under a
+   "More Photos" section at the end.
+
+   To add a caption to a photo: in Google Drive, select the file, open the
+   details panel (the "i" icon), and type a description — it'll show under
+   the photo on the site.
    ============================================================ */
 const DRIVE_API_KEY = "AIzaSyD7ZNjNSGStOUP7bzlJfX0j_ok2cLNeZ3w";
 const DRIVE_FOLDER_ID = "1SLV7W1hq1DUB1K9f1hWAVQJOAwCr3Os2";
 
+// Controls the order photo sections appear in; unlisted subfolder names
+// are appended alphabetically after these.
+const LOCATION_ORDER = ["Windsor, CO","Malibu, CA","Ahwatukee, AZ","Rockwall, TX","Jensen Beach, FL"];
+
+function slugify(s){
+  return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+async function driveList(q, fields){
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=200&key=${DRIVE_API_KEY}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Drive request failed: ' + res.status);
+  const data = await res.json();
+  return data.files || [];
+}
+
+function renderPhotoSection(container, title, id, files){
+  const section = document.createElement('div');
+  section.className = 'photo-section';
+  section.id = 'photos-' + id;
+  if(title){
+    const h = document.createElement('h3');
+    h.className = 'photo-section-title slab';
+    h.textContent = title;
+    section.appendChild(h);
+  }
+  const grid = document.createElement('div');
+  grid.className = 'photo-grid';
+  files.forEach(f=>{
+    const fig = document.createElement('figure');
+    const img = document.createElement('img');
+    // request a larger thumbnail than Drive's default
+    img.src = f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+$/, '=s800') : '';
+    img.alt = f.description || f.name || 'Basecamp trip photo';
+    img.loading = 'lazy';
+    fig.appendChild(img);
+    if(f.description){
+      const cap = document.createElement('figcaption');
+      cap.textContent = f.description;
+      fig.appendChild(cap);
+    }
+    grid.appendChild(fig);
+  });
+  section.appendChild(grid);
+  container.appendChild(section);
+}
+
 async function loadPhotos(){
   const statusEl = document.getElementById('photo-status');
-  const grid = document.getElementById('photo-grid');
+  const container = document.getElementById('photo-sections');
 
   if(DRIVE_API_KEY.startsWith('PASTE_') || DRIVE_FOLDER_ID.startsWith('PASTE_')){
     statusEl.innerHTML = `Photos aren't connected yet. Add your Google Drive <code>DRIVE_API_KEY</code> and <code>DRIVE_FOLDER_ID</code> near the top of the script to turn this tab on.`;
@@ -300,26 +406,46 @@ async function loadPhotos(){
   }
 
   try{
-    const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&fields=files(id,name,thumbnailLink)&pageSize=200&key=${DRIVE_API_KEY}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('Drive request failed: ' + res.status);
-    const data = await res.json();
-    const files = data.files || [];
+    const subfolders = await driveList(
+      `'${DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      'files(id,name)'
+    );
+    subfolders.sort((a,b)=>{
+      const ia = LOCATION_ORDER.indexOf(a.name), ib = LOCATION_ORDER.indexOf(b.name);
+      if(ia===-1 && ib===-1) return a.name.localeCompare(b.name);
+      if(ia===-1) return 1;
+      if(ib===-1) return -1;
+      return ia-ib;
+    });
 
-    if(files.length === 0){
-      statusEl.textContent = "No photos in the folder yet — add some to your Google Drive folder and refresh this page.";
-      return;
+    let anyPhotos = false;
+    const placesWithPhotos = new Set();
+    for(const folder of subfolders){
+      const files = await driveList(
+        `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
+        'files(id,name,thumbnailLink,description)'
+      );
+      if(files.length === 0) continue;
+      anyPhotos = true;
+      placesWithPhotos.add(folder.name);
+      renderPhotoSection(container, folder.name, slugify(folder.name), files);
+    }
+    attachViewPhotosLinks(placesWithPhotos);
+
+    const rootFiles = await driveList(
+      `'${DRIVE_FOLDER_ID}' in parents and mimeType contains 'image/' and trashed=false`,
+      'files(id,name,thumbnailLink,description)'
+    );
+    if(rootFiles.length){
+      anyPhotos = true;
+      renderPhotoSection(container, subfolders.length ? 'More Photos' : '', 'more-photos', rootFiles);
     }
 
+    if(!anyPhotos){
+      statusEl.textContent = "No photos yet — add some to your Google Drive folder (or a subfolder) and refresh this page.";
+      return;
+    }
     statusEl.style.display = 'none';
-    files.forEach(f=>{
-      const img = document.createElement('img');
-      // request a larger thumbnail than Drive's default
-      img.src = f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+$/, '=s800') : '';
-      img.alt = f.name || 'Basecamp trip photo';
-      img.loading = 'lazy';
-      grid.appendChild(img);
-    });
   }catch(err){
     statusEl.textContent = "Couldn't load photos right now. Double-check the API key, folder ID, and that the folder is shared as 'Anyone with the link'.";
     console.error(err);
