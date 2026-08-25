@@ -326,11 +326,6 @@ function attachViewPhotosLinks(placesWithPhotos){
   });
 }
 
-// Kick off the photo fetch as soon as the page loads (not just when the
-// Photos tab is opened) so we know which timeline cards should get a
-// "View photos" link.
-ensurePhotosLoaded();
-
 /* ============================================================
    EDIT ME: Google Drive photo gallery config.
    1. Paste your API key and folder ID below.
@@ -451,6 +446,11 @@ async function loadPhotos(){
     console.error(err);
   }
 }
+
+// Kick off the photo fetch as soon as the page loads (not just when the
+// Photos tab is opened) so we know which timeline cards should get a
+// "View photos" link.
+ensurePhotosLoaded();
 </script>
 </body>
 </html>
