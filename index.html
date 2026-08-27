@@ -191,9 +191,9 @@
 <section class="hero">
   <div class="eyebrow">Airstream Basecamp &middot; Levi &amp; Me</div>
   <h1>Wherever We Park It,<br>That's Home</h1>
-  <p class="sub">A running log of where the Basecamp is taking us this season — from Windsor to Jensen Beach, FL and everywhere in between.</p>
+  <p class="sub">A running log of where the Basecamp is taking us this season — from Durango to Malibu, CA and everywhere in between.</p>
   <div class="route-sign" id="route-sign"></div>
-  <div class="season-tag">Sept &ndash; Jan &middot; Windsor, CO to Jensen Beach, FL</div>
+  <div class="season-tag">Sept &ndash; Jan &middot; Durango, CO to Malibu, CA</div>
 </section>
 
 <main>
@@ -223,23 +223,23 @@
                this card that jumps to that folder's photo section.
    ============================================================ */
 const TRIPS = [
-  { date:"Sept 27 – Oct 6", name:"Windsor, CO", note:"", place:"Windsor, CO" },
+  { date:"Sept 3 – Sept 7", name:"Labor Day Trip to Durango, CO", note:"", place:"Durango, CO" },
+  { date:"Sept 7 – Sept 8", name:"Boondocking in Pagosa Springs", note:"Springs Resort Day" },
+  { date:"Sept 27", name:"Hit the road for Texas/Florida", note:"" },
+  { date:"Sept 28 – Oct 2", name:"Rockwall, TX", note:"", place:"Rockwall, TX" },
+  { date:"Oct 2", name:"Hit the road for Florida", note:"" },
   { date:"Oct 7", name:"Land in Aruba", note:"2:10pm arrival" },
-  { date:"Oct 11", name:"Fly back to Windsor, CO", note:"" },
-  { date:"Oct 13", name:"Hit the road for Malibu", note:"" },
-  { date:"Oct 16", name:"Make it to Malibu", note:"", place:"Malibu, CA" },
-  { date:"Oct 23 – Oct 25", name:"California National Park Trip", note:"" },
-  { date:"Nov 13", name:"Checkout of Malibu", note:"" },
+  { date:"Oct 11", name:"Fly back to Florida", note:"" },
+  { date:"Oct 12 – Nov 13", name:"Jensen Beach, FL", note:"", place:"Jensen Beach, FL" },
   { date:"Nov 13 – Nov 15", name:"Trip to NYC for UFC", note:"", tentative:true },
   { date:"Nov 16", name:"Hit the road for Arizona", note:"" },
-  { date:"Nov 17", name:"Stop for Joshua Tree", note:"", tentative:true },
+  { date:"Nov 18", name:"Stop in Rockwall, TX", note:"", tentative:true },
   { date:"Nov 20", name:"Make it to Ahwatukee, AZ", note:"", place:"Ahwatukee, AZ" },
   { date:"Thanksgiving", name:"Arizona National Park Trip / Turkey Trot", note:"", tentative:true },
   { date:"Dec 1 – Dec 8", name:"Airbnb in Arizona", note:"With Jacob & Marianna" },
-  { date:"Dec 8", name:"Hit the road for Texas", note:"" },
-  { date:"Dec 9 – Dec 12", name:"Rockwall, TX", note:"", place:"Rockwall, TX" },
-  { date:"Dec 12", name:"Hit the road for Florida", note:"" },
-  { date:"Dec 15 – Jan 5", name:"Jensen Beach, FL", note:"", place:"Jensen Beach, FL" }
+  { date:"Dec 8", name:"Hit the road for Malibu", note:"" },
+  { date:"Dec 9 – Dec 11", name:"Visit Joshua Tree National Park", note:"" },
+  { date:"Dec 11 – Jan 7", name:"Malibu, CA", note:"", place:"Malibu, CA" }
 ];
 
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -247,7 +247,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
 /* Build the route sign from each stop's short location/place name.
    Add a `place` field to a trip (short town/state or region) to control
    what shows here; stops without one are skipped so the sign stays short. */
-const ROUTE = ["Windsor, CO","Malibu, CA","Ahwatukee, AZ","Rockwall, TX","Jensen Beach, FL"];
+const ROUTE = ["Durango, CO","Rockwall, TX","Jensen Beach, FL","Ahwatukee, AZ","Malibu, CA"];
 const routeSign = document.getElementById('route-sign');
 ROUTE.forEach((leg,i)=>{
   if(i>0){
@@ -346,7 +346,7 @@ const DRIVE_FOLDER_ID = "1SLV7W1hq1DUB1K9f1hWAVQJOAwCr3Os2";
 
 // Controls the order photo sections appear in; unlisted subfolder names
 // are appended alphabetically after these.
-const LOCATION_ORDER = ["Windsor, CO","Malibu, CA","Ahwatukee, AZ","Rockwall, TX","Jensen Beach, FL"];
+const LOCATION_ORDER = ["Durango, CO","Rockwall, TX","Jensen Beach, FL","Ahwatukee, AZ","Malibu, CA"];
 
 function slugify(s){
   return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
