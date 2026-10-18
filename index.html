@@ -202,8 +202,8 @@
 </header>
 
 <section class="hero">
-  <div class="eyebrow">Airstream Basecamp &middot; Levi &amp; Me</div>
-  <h1>Wherever We Park It,<br>That's Home</h1>
+  <div class="eyebrow">Airstream Basecamp &middot; Ellie &amp; Levi</div>
+  <h1>TBD &ndash; Levi is deciding a quote</h1>
   <p class="sub">A running log of where the Basecamp is taking us this season — from Durango to Malibu, CA and everywhere in between.</p>
   <div class="route-sign" id="route-sign"></div>
   <div class="season-tag">Sept &ndash; Jan &middot; Durango, CO to Malibu, CA</div>
@@ -237,19 +237,18 @@
    ============================================================ */
 const TRIPS = [
   { date:"Sept 3 – Sept 7", name:"Labor Day Trip to Durango, CO", note:"", place:"Durango, CO" },
-  { date:"Sept 7 – Sept 8", name:"Boondocking in Pagosa Springs", note:"Springs Resort Day" },
-  { date:"Sept 27", name:"Hit the road for Texas/Florida", note:"" },
-  { date:"Sept 28 – Oct 2", name:"Rockwall, TX", note:"", place:"Rockwall, TX" },
-  { date:"Oct 2", name:"Hit the road for Florida", note:"" },
+  { date:"Sept 26", name:"Hit the road for Texas/Florida", note:"", place:"On the Road to Texas-Florida" },
+  { date:"Sept 27 – Sept 30", name:"Rockwall, TX", note:"", place:"Rockwall, TX" },
+  { date:"Sept 30", name:"Hit the road for Florida", note:"" },
   { date:"Oct 7", name:"Land in Aruba", note:"2:10pm arrival" },
   { date:"Oct 11", name:"Fly back to Florida", note:"" },
-  { date:"Oct 12 – Nov 13", name:"Jensen Beach, FL", note:"", place:"Jensen Beach, FL" },
-  { date:"Nov 13 – Nov 15", name:"Trip to NYC for UFC", note:"", tentative:true },
-  { date:"Nov 16", name:"Hit the road for Arizona", note:"" },
-  { date:"Nov 18", name:"Stop in Rockwall, TX", note:"", tentative:true },
-  { date:"Nov 20", name:"Make it to Ahwatukee, AZ", note:"", place:"Ahwatukee, AZ" },
-  { date:"Thanksgiving", name:"Arizona National Park Trip / Turkey Trot", note:"", tentative:true },
-  { date:"Dec 1 – Dec 8", name:"Airbnb in Arizona", note:"With Jacob & Marianna" },
+  { date:"Oct 12 – Nov 4", name:"Florida", note:"", place:"Florida" },
+  { date:"Oct 29 – Nov 2", name:"Key West, FL", note:"", place:"Key West, FL" },
+  { date:"Nov 4", name:"Hit the road for Arizona", note:"" },
+  { date:"Nov 10", name:"Make it to Ahwatukee, AZ", note:"", place:"Arizona" },
+  { date:"Nov 12 – Nov 15", name:"Trip to NYC for Austin's 30th and UFC", note:"" },
+  { date:"Thanksgiving", name:"Arizona National Park Trip / Turkey Trot", note:"", tentative:true, place:"Arizona" },
+  { date:"Dec 1 – Dec 8", name:"Airbnb in Arizona", note:"With Jacob & Marianna", place:"Arizona" },
   { date:"Dec 8", name:"Hit the road for Malibu", note:"" },
   { date:"Dec 9 – Dec 11", name:"Visit Joshua Tree National Park", note:"" },
   { date:"Dec 11 – Jan 7", name:"Malibu, CA", note:"", place:"Malibu, CA" }
@@ -260,7 +259,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
 /* Build the route sign from each stop's short location/place name.
    Add a `place` field to a trip (short town/state or region) to control
    what shows here; stops without one are skipped so the sign stays short. */
-const ROUTE = ["Durango, CO","Rockwall, TX","Jensen Beach, FL","Ahwatukee, AZ","Malibu, CA"];
+const ROUTE = ["Durango, CO","Rockwall, TX","Florida","Ahwatukee, AZ","Malibu, CA"];
 const routeSign = document.getElementById('route-sign');
 ROUTE.forEach((leg,i)=>{
   if(i>0){
@@ -361,7 +360,7 @@ const DRIVE_FOLDER_ID = "1SLV7W1hq1DUB1K9f1hWAVQJOAwCr3Os2";
 
 // Controls the order photo sections appear in; unlisted subfolder names
 // are appended alphabetically after these.
-const LOCATION_ORDER = ["Durango, CO","Rockwall, TX","Jensen Beach, FL","Ahwatukee, AZ","Malibu, CA"];
+const LOCATION_ORDER = ["Durango, CO","On the Road to Texas-Florida","Rockwall, TX","Florida","Key West, FL","Arizona","Malibu, CA"];
 
 function slugify(s){
   return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
