@@ -145,13 +145,12 @@
     font-size:1.3rem; color:var(--forest-dark); margin:0 0 16px;
     padding-bottom:8px; border-bottom:2px solid var(--gold);
   }
-  .photo-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px;
-  }
-  .photo-grid figure{ margin:0; }
+  /* Masonry layout: photos keep their real shape (no cropping). */
+  .photo-grid{ column-width:240px; column-gap:14px; }
+  .photo-grid figure{ margin:0 0 14px; break-inside:avoid; }
   .photo-grid img{
-    width:100%; height:220px; object-fit:cover; border-radius:8px; box-shadow:var(--shadow);
-    display:block; background:var(--tan);
+    width:100%; height:auto; border-radius:8px; box-shadow:var(--shadow);
+    display:block; background:var(--tan); cursor:zoom-in;
   }
   .video-thumb{
     position:relative; display:block; width:100%; padding:0; border:none; background:none; cursor:pointer;
@@ -163,12 +162,20 @@
     border:2px solid var(--gold); transition:background .2s ease;
   }
   .video-thumb:hover .play-icon, .video-thumb:focus-visible .play-icon{ background:var(--rust); }
+  .video-thumb img{ cursor:pointer; }
   .video-frame{
-    width:100%; height:220px; border:none; border-radius:8px; box-shadow:var(--shadow); background:#000; display:block;
+    width:100%; height:auto; aspect-ratio:16/9; border:none; border-radius:8px; box-shadow:var(--shadow); background:#000; display:block;
   }
   .photo-grid figcaption{
     margin-top:6px; font-size:0.82rem; color:var(--forest); opacity:0.85; line-height:1.4;
   }
+  .lightbox{
+    position:fixed; inset:0; z-index:100; background:rgba(20,28,24,0.92);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:24px;
+    cursor:zoom-out;
+  }
+  .lightbox img{ max-width:100%; max-height:calc(100vh - 110px); object-fit:contain; border-radius:6px; }
+  .lightbox p{ margin:0; color:var(--cream); font-size:0.95rem; text-align:center; max-width:700px; }
   .view-photos{
     display:inline-block; margin-top:10px; border:none; background:none; padding:0;
     color:var(--rust); font-family:'Inter',sans-serif; font-weight:600; font-size:0.82rem;
@@ -240,7 +247,7 @@ const TRIPS = [
   { date:"Sept 26", name:"Hit the road for Texas/Florida", note:"", place:"On the Road to Texas-Florida" },
   { date:"Sept 27 – Sept 30", name:"Rockwall, TX", note:"", place:"Rockwall, TX" },
   { date:"Sept 30", name:"Hit the road for Florida", note:"" },
-  { date:"Oct 7", name:"Land in Aruba", note:"2:10pm arrival" },
+  { date:"Oct 7", name:"Aruba", note:"Austin & Erica's Wedding 10/10!!", place:"Aruba" },
   { date:"Oct 11", name:"Fly back to Florida", note:"" },
   { date:"Oct 12 – Nov 4", name:"Florida", note:"", place:"Florida" },
   { date:"Oct 29 – Nov 2", name:"Key West, FL", note:"", place:"Key West, FL" },
@@ -360,7 +367,7 @@ const DRIVE_FOLDER_ID = "1SLV7W1hq1DUB1K9f1hWAVQJOAwCr3Os2";
 
 // Controls the order photo sections appear in; unlisted subfolder names
 // are appended alphabetically after these.
-const LOCATION_ORDER = ["Durango, CO","On the Road to Texas-Florida","Rockwall, TX","Florida","Key West, FL","Arizona","Malibu, CA"];
+const LOCATION_ORDER = ["Durango, CO","On the Road to Texas-Florida","Rockwall, TX","Aruba","Florida","Key West, FL","Arizona","Malibu, CA"];
 
 function slugify(s){
   return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
@@ -372,6 +379,25 @@ async function driveList(q, fields){
   if(!res.ok) throw new Error('Drive request failed: ' + res.status);
   const data = await res.json();
   return data.files || [];
+}
+
+function openLightbox(f, alt){
+  const box = document.createElement('div');
+  box.className = 'lightbox';
+  const big = document.createElement('img');
+  big.src = f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+$/, '=s1600') : '';
+  big.alt = alt;
+  box.appendChild(big);
+  if(f.description){
+    const cap = document.createElement('p');
+    cap.textContent = f.description;
+    box.appendChild(cap);
+  }
+  const close = ()=>{ box.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e=>{ if(e.key === 'Escape') close(); };
+  box.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(box);
 }
 
 function renderPhotoSection(container, title, id, files){
@@ -394,6 +420,14 @@ function renderPhotoSection(container, title, id, files){
     img.src = f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+$/, '=s800') : '';
     img.alt = f.description || f.name || (isVideo ? 'Basecamp trip video' : 'Basecamp trip photo');
     img.loading = 'lazy';
+    // Reserve the right shape up front so the layout doesn't jump as images load.
+    const meta = f.imageMediaMetadata || f.videoMediaMetadata;
+    if(meta && meta.width && meta.height){
+      const turned = f.imageMediaMetadata && (meta.rotation === 1 || meta.rotation === 3);
+      const w = turned ? meta.height : meta.width, h = turned ? meta.width : meta.height;
+      img.width = w; img.height = h;
+      img.style.aspectRatio = w + ' / ' + h;
+    }
     if(isVideo){
       // Thumbnail with a play button; clicking swaps in Drive's player.
       const btn = document.createElement('button');
@@ -416,6 +450,7 @@ function renderPhotoSection(container, title, id, files){
       });
       fig.appendChild(btn);
     } else {
+      img.addEventListener('click', ()=> openLightbox(f, img.alt));
       fig.appendChild(img);
     }
     if(f.description){
@@ -456,7 +491,7 @@ async function loadPhotos(){
     for(const folder of subfolders){
       const files = await driveList(
         `'${folder.id}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false`,
-        'files(id,name,mimeType,thumbnailLink,description)'
+        'files(id,name,mimeType,thumbnailLink,description,imageMediaMetadata(width,height,rotation),videoMediaMetadata(width,height))'
       );
       if(files.length === 0) continue;
       anyPhotos = true;
@@ -467,7 +502,7 @@ async function loadPhotos(){
 
     const rootFiles = await driveList(
       `'${DRIVE_FOLDER_ID}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false`,
-      'files(id,name,mimeType,thumbnailLink,description)'
+      'files(id,name,mimeType,thumbnailLink,description,imageMediaMetadata(width,height,rotation),videoMediaMetadata(width,height))'
     );
     if(rootFiles.length){
       anyPhotos = true;
